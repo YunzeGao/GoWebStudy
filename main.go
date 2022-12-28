@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"gee"
 	"net/http"
 )
@@ -10,26 +9,33 @@ import (
 *
 curl http://127.0.0.1:8081/
 
-	URL.Path = "/"
+	<h1>Hello Gee</h1>
 
-curl http://127.0.0.1:8081/hello
+curl http://127.0.0.1:8081/hello\?name\=gyz
 
-	header["User-Agent"] = ["curl/7.79.1"]
-	header["Accept"] = ["* /*"]
+	hello gyz, you're at /hello
 
 curl http://127.0.0.1:8081/world
 
 	404 NOT FOUND: /world
+
+curl http://127.0.0.1:8081/login -X POST -d 'username=gyz&password=3344'
+
+	{"password":"3344","username":"gyz"}
 */
 func main() {
 	web := gee.New()
-	web.GET("/", func(w http.ResponseWriter, req *http.Request) {
-		fmt.Fprintf(w, "URL.Path = %q\n", req.URL.Path)
+	web.GET("/", func(c *gee.Context) {
+		c.HTML(http.StatusOK, "<h1>Hello Gee</h1>\n")
 	})
-	web.GET("/hello", func(w http.ResponseWriter, req *http.Request) {
-		for k, v := range req.Header {
-			fmt.Fprintf(w, "header[%q] = %q\n", k, v)
-		}
+	web.GET("/hello", func(c *gee.Context) {
+		c.TextString(http.StatusOK, "hello %s, you're at %s\n", c.Query("name"), c.Path)
 	})
-	web.Run(":8081")
+	web.POST("/login", func(c *gee.Context) {
+		c.JSON(http.StatusOK, gee.H{
+			"username": c.PostForm("username"),
+			"password": c.PostForm("password"),
+		})
+	})
+	_ = web.Run(":8081")
 }
